@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <service class="DateifabrikVerpack\Controllers\Frontend\FrontendCheckoutConfirmAddLicenseData" id="dateifabrik_verpack.controllers.frontend.frontend_checkout_confirm_add_license_data">
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service class="DateifabrikVerpack\Services\ProductNameService" id="dateifabrik_verpack.services.product_name_service">
+            <argument id="dbal_connection" type="service"/>
+        </service>
+
+
+    </services>
+
+</container>

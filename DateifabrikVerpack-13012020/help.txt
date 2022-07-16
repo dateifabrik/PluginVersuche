@@ -1,0 +1,88 @@
+    /**
+    // $this->container->get('Template')->addTemplateDir(__DIR__. '/../../Resources/views/');
+
+    // diese Funktion registriert die Events mit Namen (z.B. MyConfirm) in Shopware, sodaß sie überall gefunden werden können
+    // http://192.168.33.89/shop/my_confirm/test wäre eine eigene Route, sonst an die Vorgaben im Theme-Ordner halten (ruft die testAction und somit die test.tpl auf)
+    public static function getSubscribedEvents()
+    {
+        return [
+            // für Controller-eigene Funktionen?
+            'Enlight_Controller_Dispatcher_ControllerPath_Frontend_MyConfirm' => 'onGetControllerPath',
+
+            // zum Überschreiben der Original-Templates
+            'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onPostDispatchCheckout'
+        ];
+
+    }
+
+    // HelperClass
+    // ACHTUNG!! getPath() STEHT NUR IN DER BASIS PLUGIN KLASSE ZUR VERFÜGUNG
+    public function registerTemplateDir()
+    {
+        $this->container->get('Template')->addTemplateDir($this->getPath(). '/Resources/views/');
+    }
+
+    public function onGetControllerPath()
+    {
+
+        // registriert die views im Shopware-Template-Verzeichnis (fügt das eigene Template in Shopware hinzu)
+        // $this->container ist DI (Dependency Injection Container) für Zugriff auf das Template-System von Shopware
+        // $this->container->get('Template')->addTemplateDir($this->getPath(). '/Resources/views/');
+        // ...wurde in Helpermethode registerTemplateDir() ausgelagert, weil es in onPostdispatch auch benötigt wird
+        $this->registerTemplateDir();
+
+        // holt den kompletten Pfad zur Event-Datei (Klasse)
+        return $this->getPath() . '/Controllers/Frontend/MyTestconfirm.php';
+    }
+
+
+
+
+    public function onPostDispatchCheckout(\Enlight_Event_EventArgs $args)
+    {
+
+        /** @var \Shopware_Controllers_Frontend_Checkout $checkoutController / #############***##############
+        $checkoutController = $args->getSubject();
+        $view = $checkoutController->View();
+
+        $this->registerTemplateDir();
+
+        $view->assign('meine_daten', [
+            'bla bla bla' => [
+                'Ja Ja Ja'
+            ],
+            'blub blub blub' => [
+                'flupp flupp flupp',
+                'klopp klopp klopp'
+            ]
+        ]);
+
+    }
+
+     */
+
+###############################################################################################
+
+
+        /*
+        $view->assign('meine_daten', [
+            'bla bla bla' => [
+                'Ja Ja Ja'
+            ],
+            'blub blub blub' => [
+                'flupp flupp flupp',
+                'klopp klopp klopp'
+            ]
+        ]);
+        */
+
+        /*
+        $connection = Shopware()->Container()->get('dbal_connection');
+        $query1 = 'SELECT * FROM s_articles WHERE id = 1';
+        $bla = $connection->query($query1)->fetch();
+        $view->assign('dbank', $bla);
+        */
+
+
+
+

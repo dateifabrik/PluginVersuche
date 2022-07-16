@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <service class="DateifabrikLicenseCalc\Subscriber\CheckoutConfirmSubscriber" id="dateifabrik_license_calc.subscriber.checkout_confirm_subscriber">
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service class="DateifabrikLicenseCalc\Services\TestService" id="dateifabrik_license_calc.services.test_service"/>
+
+        <service class="DateifabrikLicenseCalc\Services\MaterialNameService" id="dateifabrik_license_calc.services.material_name_service">
+            <argument id="dbal_connection" type="service"/>
+        </service>
+
+    </services>
+
+</container>

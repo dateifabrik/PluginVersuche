@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.3/engine/Shopware/Components/Plugin/schema/config.xsd">
+    <elements>
+        <element required="true" type="text" scope="locale">
+            <name>slogan</name>
+            <label lang="de">Ein Feld für Inhalt/Daten</label>
+            <label lang="en">A field for content/data</label>
+            <value>Hier kann zum Beispiel eine Materialart stehen.</value>
+            <description>Trage hier eine Materialart ein.</description>
+        </element>
+    </elements>
+</config>

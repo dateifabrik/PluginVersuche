@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <!-- register the seo category service -->
+        <service class="DateifabrikVerpackLizenz\Subscribers\TemplateRegistration" id="dateifabrik_verpack_lizenz.subscribers.template_registration">
+            <argument>%dateifabrik_verpack_lizenz.plugin_dir%</argument>
+            <argument type="service" id="template"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service class="DateifabrikVerpackLizenz\Subscribers\FrontendCheckoutMaterialToBasket" id="dateifabrik_verpack_lizenz.subscribers.frontend_checkout_material_to_basket">
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service class="DateifabrikVerpackLizenz\Services\ArticleWeightAndMaterialService" id="dateifabrik_verpack_lizenz.services.article_weight_and_material_service">
+            <tag name="dbal_connection" type="service" />
+            <argument type="service" id="dbal_connection"/>
+        </service>
+
+    </services>
+
+</container>

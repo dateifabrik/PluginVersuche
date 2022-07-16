@@ -1,0 +1,279 @@
+<?php
+
+/* TODO
+
+- button legt artikel in basket
+- Frontend checkt Artikel in Basket, wenn VerpacG drin, dann button disabled, sonst ''
+- Aktualisierung des Betrages anhand der Berechnung
+
+
+
+- Hersteller Lizenzero anlegen (lassen bei Installation)
+- Kategorie "Lizenzgebühren" anlegen (lassen bei Installation)
+- Artikel "Entsorgungsgebühr" anlegen (lassen bei Installation (https://forum.shopware.com/t/artikel-und-kategorie-anlegen-programmatisch/59166/8))
+- checkout/confirm Button drücken: fügt Lizenz als Artikel hinzu und setzt den Status als Text (Controller)
+- checkout/confirm.tpl: Artikel hat keine Anzahl- und entfernen-Buttons
+- wenn Button gedrückt und Artikel Lizenz im Warenkorb: bei jedem Artikelupdate des Warenkorbs den Preis für Lizenz aktualisieren
+*/
+
+namespace DateifabrikDisposalFee\Subscriber;
+
+use Enlight\Event\SubscriberInterface;
+use Shopware\Components\DependencyInjection\Bridge\Db;
+use Zend_Date;
+
+
+class Frontend implements SubscriberInterface
+{
+
+    public static function getSubscribedEvents()
+    {
+        return [
+          'Enlight_Controller_Action_PostDispatchSecure_Frontend_Checkout' => 'onCheckout',
+
+            /*              'Shopware_Modules_Basket_UpdateCartItems_Updated' => 'onBasketUpdate',
+                        'Shopware_Modules_Order_SaveOrder_FilterDetailsSQL' => 'onSaveOrder',*/
+            ];
+    }
+
+
+
+
+
+
+    public function onSaveOrder(\Enlight_Event_EventArgs $args)
+    {
+
+
+                $sessionId = Shopware()->Session()->get('sessionId');
+
+/*                $db = Shopware()->Db();
+                $data = [
+                    'sessionID' => $sessionId,
+                    'articlename' => 'Testartikel Eins',
+                    'articleID' => 0,
+                    'ordernumber' => 'SW10001',
+                    'quantity' => 1,
+                    'price' => 100,
+                    'netprice' => 8.4033613445378,
+                    'tax_rate' => 19,
+                    'datum' => new Zend_Date(),
+                    'modus' => 0,
+                    'currencyFactor' => 1
+                ];
+
+                $db->insert('s_order_basket', $data);*/
+
+
+
+
+
+
+        //$test = $args->getReturn();
+
+
+
+/*
+        echo "<pre>";
+        print_r($test);
+        echo "</pre>";
+        die('-');*/
+
+
+    }
+
+    public function onBasketUpdate(\Enlight_Event_EventArgs $args)
+    {
+
+        $basketUpdated = Shopware()->Modules()->Basket();
+
+
+        //$sessionId = Shopware()->Session()->get('sessionId');
+        //Shopware()->Db()->update( "s_order_basket", array('price' => 500.00), array('ordernumber = ?' => 'SW10002', 'sessionID = ?' => $sessionId, 'modus = ?' => 0) );
+
+
+        //die('jepp');
+
+    }
+
+
+    public function onCheckout(\Enlight_Event_EventArgs $args)
+    {
+
+
+
+        /** @var \Shopware_Controllers_Frontend_Checkout $subject */
+        $subject = $args->getSubject();
+        $view = $subject->View();
+
+        $connection = $subject->get('dbal_connection');
+        $builder = $connection->createQueryBuilder();
+
+        $sessionId = Shopware()->Session()->get('sessionId');
+
+        $builder
+            ->select('id', 'articlename')
+            ->from('s_order_basket')
+            ->where('sessionID = :sessionID')
+            ->setParameter('sessionID', $sessionId);
+
+        $result = $builder->execute()->fetchAll();
+        echo "<pre>";
+        print_r($result);
+        echo "</pre>";
+        die();
+
+        $sOrderVariables = $subject->get('session')->offsetGet('sOrderVariables');
+        echo "<pre>";
+        print_r($sOrderVariables->getArrayCopy());
+        echo "</pre>";
+        die();
+
+
+        // prüfen, ob VerpackG in Basket
+        // falls ja, button disabled
+
+        $sessionId = Shopware()->Session()->get('sessionId');
+        $sql3 =  Shopware()->Db()->select()
+            ->from('s_order_basket')
+            ->where ('sessionID = ?', $sessionId);
+        $basket_attributes = Shopware()->Db()->fetchAll($sql3);
+        //die(print_r($basket_attributes));
+
+        foreach($basket_attributes as $b){
+            if($b['ordernumber'] == 'VerpackG'){
+                $view->assign('isdrin', 'isdrin');
+            }
+        }
+
+
+
+        $sGetBasketData = Shopware()->Modules()->Basket()->sGetBasketData();
+        $basketContent = $sGetBasketData['content'];
+/*
+        echo "<pre>";
+
+
+        foreach($basketContent as $bc){
+            if(!empty($bc['additional_details']['p24_weight'])){
+                echo $bc['quantity']. " ". $bc['itemUnit']. " ". $bc['articlename']. " ". $bc['ordernumber']. " ". $bc['additional_details']['p24_weight']. "<br />";
+            }
+
+        }
+
+        echo "<p>###########################################</p>";
+        print_r($sGetBasketData['content']);
+
+        echo "</pre>";
+        die();
+
+
+       $sessionId = Shopware()->Session()->get('sessionId');
+        $sql3 = Shopware()->Db()->select()
+            ->from('s_order_basket')
+            ->where ('sessionID = ?', $sessionId);
+        $basket_attributes = Shopware()->Db()->fetchAll($sql3);
+
+       die(print_r($basket_attributes[0]['articleID']));*/
+
+
+
+
+
+        if($subject->Request()->getActionName() == 'confirm'){
+
+            // get the basket content
+            $sOrderVariables = $subject->get('session')->offsetGet('sOrderVariables');
+
+            foreach($sOrderVariables['sBasket']['content'] as $article){
+
+                // wird für sDeleteArticle() benötigt
+                if($article['ordernumber'] == 'VerpackG'){
+                    $verpackgId = $article['id'];
+                }
+
+
+                $basketArticleData[] =  array(
+                    'quantity' => $article['quantity'],
+                    'purchaseunit' => $article['purchaseunit'],
+                    'weight' => $article['additional_details']['weight'],
+                    'p24_weight' => $article['additional_details']['attributes']['core']['p24_weight']
+                );
+
+            }
+
+            /* GESAMTKOSTEN BERECHNEN */
+
+            // TODO: Daten besser aus einer Config im Backend laden
+            $materials = array(
+                'plastik' => 2.0,
+                'alu' => 3.0
+            );
+            $totalFee = 0;
+            foreach($basketArticleData as $article){
+                $singleFee = $article['quantity'] * $article['purchaseunit'] * $article['weight'];
+                foreach($materials as $materialKey => $materialValue){
+                    if($article['p24_weight'] == $materialKey){
+                        $totalFee = $totalFee + $singleFee * $materialValue;
+                    }
+                }
+
+
+            }
+            //echo $gesamt;
+            $view->assign('disposalFee', $totalFee);
+
+
+
+            // Button was clicked
+            $response = $subject->Request()->getParam('response');
+            $state = $subject->get('session')->offsetGet('state');
+
+
+            if(empty($response) || $response == 'add'){
+                // Entsorgungsgebühr hinzu
+                //Shopware()->Modules()->Basket()->sAddArticle('VerpackG', '1');
+            }
+            else{
+                // Entsorgungsgebühr entfernen
+                // id in s_order_basket nötig
+                // muss auch angewendet werden, wenn kein anderer Artikel mehr im Basket ist
+                //$sGetBasketQuantity = Shopware()->Modules()->Basket()->sGetBasketIds();
+                //$bla = Shopware()->Modules()->Basket()->sGetBasketData();
+//                echo "<pre>";
+//
+//                print_r($bla['content']);
+//                echo "</pre>";
+//                die();
+//
+//                Shopware()->Modules()->Basket()->sDeleteArticle($verpackgId);
+
+
+            }
+
+            if(!empty($response)) {
+
+
+
+
+                $subject->get('session')->offsetSet('state', $response);
+                $view->assign('state', $response);
+                $btnText = $response == 'add' ? 'Entsorgungsgebühr hinzufügen +' : 'Entsorgungsgebühr entfernen x';
+                $view->assign('addOrRemoveBtnText', $btnText);
+            }
+            // first state, must be after "button was clicked" because it might override the button request state
+            elseif(empty($state)){
+                $view->assign('addOrRemoveBtnText', 'Entsorgungsgebühr hinzufügen +');
+            }
+            // page was refreshed, i.e. by change quantity function, assign the last state
+            else{
+                $view->assign('state', $state);
+                $btnText = $state == 'add' ? 'Entsorgungsgebühr hinzufügen +' : 'Entsorgungsgebühr entfernen x';
+                $view->assign('addOrRemoveBtnText', $btnText);
+            }
+
+        }
+
+    }
+
+}

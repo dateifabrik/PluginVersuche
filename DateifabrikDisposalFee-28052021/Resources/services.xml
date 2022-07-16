@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <service class="DateifabrikDisposalFee\Subscriber\TemplateRegistration" id="dateifabrik_disposal_fee.subscriber.template_registration">
+            <argument>%dateifabrik_disposal_fee.plugin_dir%</argument>
+            <argument type="service" id="template"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service class="DateifabrikDisposalFee\Subscriber\Frontend" id="dateifabrik_disposal_fee.subscriber.frontend">
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+
+<!--
+        <service class="DateifabrikDisposalFee\Subscriber\Tests" id="dateifabrik_disposal_fee.subscriber.tests">
+          <tag name="shopware.event_subscriber"/>
+        </service>
+-->
+
+
+
+    </services>
+
+</container>
